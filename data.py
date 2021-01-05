@@ -8,8 +8,8 @@ def data_generator():
     input = []
 
     print('loading data...')
-    # wb = load_workbook('miniData.xlsx')
-    wb = load_workbook('Data.xlsx')
+    wb = load_workbook('miniData.xlsx')
+    # wb = load_workbook('Data.xlsx')
     sheet = wb["artificial water adding process"]
     for row in sheet.rows:
         data = []
@@ -37,13 +37,18 @@ def data_generator():
     input = np.mat(input)
     add_water = input[:, 4:6]
     input = np.delete(input, [4, 5], axis=1)
-    # print(input)
+
+    train_input = input[:34298]
+    train_add_water = add_water[34298:]
+    test_input = input[34298:]
+    test_add_water = add_water[34298:]
+
     '''
         input: ['一混测水仪表显示值' '二混测水仪表显示值' '一混测水拟合值' '二混测水拟合值' '1#混匀矿' '2#混匀矿' 
                 '3#混匀矿' '4#混匀矿' '#铁精矿铁精矿' '#焦炭' '#煤粉' '#石灰石' '#白云石' '#返矿' '#粉尘' '#生石灰']
         add_water: ['一混加水流量' '二混加水流量']
     '''
-    return input, add_water
+    return train_input, train_add_water, test_input, test_add_water
 
 
 # data_generator()
