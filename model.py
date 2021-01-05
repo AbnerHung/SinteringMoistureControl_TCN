@@ -19,7 +19,6 @@ class TemporalBlock(nn.Module):
     def __init__(self, n_inputs, n_outputs, kernel_size, stride, dilation, padding, dropout=0.2):
         """
         相当于一个Residual block
-
         :param n_inputs: int, 输入通道数
         :param n_outputs: int, 输出通道数
         :param kernel_size: int, 卷积核尺寸
@@ -51,7 +50,6 @@ class TemporalBlock(nn.Module):
     def init_weights(self):
         """
         参数初始化
-
         :return:
         """
         self.conv1.weight.data.normal_(0, 0.01)
@@ -75,7 +73,6 @@ class TemporalConvNet(nn.Module):
         TCN，目前paper给出的TCN结构很好的支持每个时刻为一个数的情况，即sequence结构，
         对于每个时刻为一个向量这种一维结构，勉强可以把向量拆成若干该时刻的输入通道，
         对于每个时刻为一个矩阵或更高维图像的情况，就不太好办。
-
         :param num_inputs: int， 输入通道数
         :param num_channels: list，每层的hidden_channel数，例如[25,25,25,25]表示有4个隐层，每层hidden_channel数为25
         :param kernel_size: int, 卷积核尺寸
@@ -98,8 +95,21 @@ class TemporalConvNet(nn.Module):
         输入x的结构不同于RNN，一般RNN的size为(Batch, seq_len, channels)或者(seq_len, Batch, channels)，
         这里把seq_len放在channels后面，把所有时间步的数据拼起来，当做Conv1d的输入尺寸，实现卷积跨时间步的操作，
         很巧妙的设计。
-        
         :param x: size of (Batch, input_channel, seq_len)
         :return: size of (Batch, output_channel, seq_len)
         """
         return self.network(x)
+
+
+class TCN(nn.Module):
+    def __init__(self, input_size, output_size, num_channels, kernel_size, dropout):
+        super(TCN, self).__init__()
+        self.tcn = TemporalConvNet(input_size, num_channels, kernel_size, dropout=dropout)
+        self.linear = nn.Linear(num_channels[-1], output_size)
+        self.sig = nn.Sigmoid()
+
+    def forward(self, x):
+        # x needs to have dimension (N, C, L) in order to be passed into CNN
+        output = self.tcn(x)
+        output = self.linear(output).double()
+        return self.sig(output)
