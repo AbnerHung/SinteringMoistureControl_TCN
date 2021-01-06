@@ -36,15 +36,17 @@ def train(ep):
     # print(torch.Tensor(input[0:16, :]).shape)
 
     for i in range(38095):
-        x = torch.Tensor(data[i:i + 16, :])
+        x = torch.Tensor(data[i:i+16, :])
         x = x.unsqueeze(0)
-        #print(x.shape)
+        # print(x.shape)
         optimizer.zero_grad()
         output = model(x)
-        #print(output.shape)
-        loss = LossF(output[:0], add_water[i+15][0]) + LossF(output[:1], add_water[i+15][1])
-        acc1 = (1. * output[:0]) / add_water[i+15][0]
-        acc2 = (1. * output[:1]) / add_water[i+15][1]
+        output = output.view(2)
+        # print(output[0])
+        # print(add_water[i + 15][0])
+        loss = LossF(output[0], add_water[i+15][0]) + LossF(output[1], add_water[i+15][1])
+        acc1 = (1. * output[0]) / add_water[i+15][0]
+        acc2 = (1. * output[1]) / add_water[i+15][1]
         #print("acc1.shape=",acc1.shape)
         acc += acc1
         acc += acc2
