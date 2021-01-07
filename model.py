@@ -17,7 +17,7 @@ class TCN(nn.Module):
         output = self.tcn(x.transpose(1, 2)).transpose(1, 2)
         output = self.linear(output).double()
         output = output.view(1,16*1*1)
-        
         output = self.linear2((output).float())
-        print("output.shape=",output.shape)
+        output = output.view(2)
+        #print("output.shape=",output.shape)
         return output

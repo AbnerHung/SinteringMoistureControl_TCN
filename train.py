@@ -1,4 +1,6 @@
 from model import *
+import sys
+import signal
 from data.data import data_generator
 from torch.autograd import Variable
 from torch.optim import optimizer
@@ -27,6 +29,11 @@ optimizer = torch.optim.RMSprop(model.parameters(),
 clipGrad = 0
 
 
+def myHandler(signum, frame):
+    torch.save(model.state_dict(), "./checkpoints/"+"modeldata_latest.pth")
+    print("\nGoodbye !")
+    sys.exit()
+
 def train(ep):
     model.train()
     total_loss = 0
@@ -41,7 +48,6 @@ def train(ep):
         # print(x.shape)
         optimizer.zero_grad()
         output = model(x)
-        output = output.view(2)
         # print(output[0])
         # print(add_water[i + 15][0])
         loss = LossF(output[0], add_water[i+15][0]) + LossF(output[1], add_water[i+15][1])
@@ -57,13 +63,19 @@ def train(ep):
             torch.nn.utils.clip_grad_norm_(model.parameters(), clipGrad)
         loss.backward()
         optimizer.step()
-        if i > 0 and i % 100 == 0:
+        signal.signal(signal.SIGINT, myHandler)
+        ch_list = ["\\","\\", "|",  "|","/", "/","-","-"]
+        index = i % 8
+        print(ch_list[index],end="\r ")
+        if i > 0 and i % 1000 == 0:
             cur_loss = total_loss / count
             acc /= count
-            print("Epoch {:2d} |  | loss {:.5f}".format(ep,  cur_loss))
+            print(ch_list[index],"Epoch {:2d} | output[0] {:.5f} | loss {:.5f}".format(ep,output[0] , cur_loss),end="\r")
             total_loss = 0.0
             count = 0
             acc = 0
 
-
-train(0)
+for j in range(3):
+    train(j)
+    torch.save(model.state_dict(), "./checkpoints/"+"modeldata_"+str(j)+".pth")
+    print("Saved successfully !")
